@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CS Shortcut Library</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f5ede0;color:#3a2a1a;min-height:100vh}
+.app{max-width:900px;margin:0 auto;padding:1.5rem 1rem 4rem}
+header{margin-bottom:1.25rem}
+h1{font-size:22px;font-weight:600;color:#5c3d1e;margin-bottom:3px}
+.subtitle{font-size:13px;color:#8a6a4a}
+.search-wrap{position:relative;margin-bottom:1rem}
+.search-wrap input{width:100%;padding:10px 14px 10px 38px;border:1.5px solid #d4b896;border-radius:8px;background:#fff8f0;font-size:14px;color:#3a2a1a;outline:none;transition:border .15s}
+.search-wrap input:focus{border-color:#a0714a;background:#fff}
+.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:#a0714a;font-size:15px;pointer-events:none}
+.tabs{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:1rem}
+.tab{padding:5px 11px;border-radius:20px;border:1.5px solid #d4b896;background:#fff8f0;font-size:12px;color:#7a5232;cursor:pointer;transition:all .15s;font-family:inherit}
+.tab:hover{background:#eedcc6;border-color:#b8895a}
+.tab.active{background:#7a5232;color:#fff;border-color:#7a5232}
+.stats{font-size:12px;color:#8a6a4a;margin-bottom:1rem}
+.section{margin-bottom:1rem;border-radius:10px;background:#fffdf8;border:1.5px solid #e0ccb4;overflow:hidden}
+.section-header{padding:11px 14px;background:#f0e4d0;cursor:pointer;display:flex;align-items:center;gap:8px;user-select:none;border-bottom:1.5px solid #e0ccb4}
+.section-header:hover{background:#e8d8c0}
+.section-num{font-size:10px;background:#c8a07a;color:#fff;border-radius:9px;padding:2px 7px;font-weight:600;letter-spacing:.03em}
+.section-header h2{font-size:14px;font-weight:600;color:#5c3d1e;flex:1}
+.section-match{font-size:11px;color:#8a6a4a;margin-right:4px}
+.chevron{color:#8a6a4a;font-size:12px;transition:transform .2s;display:inline-block}
+.section.collapsed .chevron{transform:rotate(-90deg)}
+.section-body{padding:10px}
+.section.collapsed .section-body{display:none}
+.subsection-title{font-size:11px;font-weight:600;color:#8a6a4a;text-transform:uppercase;letter-spacing:.07em;margin:10px 0 5px 2px}
+.subsection-title:first-child{margin-top:2px}
+.spiel{background:#fff8f0;border:1.5px solid #e8d5bc;border-radius:7px;padding:9px 11px;margin-bottom:6px;display:flex;align-items:flex-start;gap:9px}
+.spiel:last-child{margin-bottom:0}
+.spiel-text{font-size:13.5px;color:#3a2a1a;line-height:1.6;flex:1}
+.spiel-text em{font-style:normal;font-weight:600;color:#7a5232;background:#f0e4d0;padding:1px 3px;border-radius:3px}
+.copy-btn{flex-shrink:0;padding:5px 10px;border-radius:6px;border:1.5px solid #c8a07a;background:#fff;color:#7a5232;font-size:11px;cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .15s;white-space:nowrap;font-family:inherit;font-weight:500}
+.copy-btn:hover{background:#f0e4d0}
+.copy-btn.copied{background:#4a7c30;border-color:#4a7c30;color:#fff}
+.no-results{text-align:center;padding:2.5rem;color:#8a6a4a;font-size:14px}
+.no-results span{display:block;font-size:28px;margin-bottom:8px}
+.header-match{background:#fff3e0;border:1.5px solid #e0ccb4}
+.header-match .section-header{background:#ffe8c8}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>&#128218; Customer Service Shortcut Library</h1>
+    <p class="subtitle">Click any spiel to copy it instantly &mdash; works fully offline.</p>
+  </header>
+  <div class="search-wrap">
+    <span class="search-icon">&#128269;</span>
+    <input type="text" id="searchInput" placeholder="Search spiels or categories&#8230;" autocomplete="off">
+  </div>
+  <div class="tabs" id="tabsContainer"></div>
+  <div class="stats" id="statsDisplay"></div>
+  <div id="sectionsContainer"></div>
+</div>
+<script>
+const SECTIONS=[
+  {id:"intro",label:"Introduction",num:"01",entries:[
+    "Thank you for reaching out.",
+    "Thanks for your enquiry.",
+    "Thank you for your interest.",
+    "You're chatting with a live support agent. What can I help you with?",
+    "You're chatting with a live person. I'm here to assist you today. How can I help?",
+    "You're now chatting with Belinda. I am here to assist you.",
+    "You're now chatting with Belinda. I'll help you in getting assistance with your search.",
+    "This is Belinda! I'm here to help you find the dealership that's closest to you. Could you please share your postcode and suburb with me?",
+    "I support online guest enquiries for this dealership. I'm happy to assist directly or help connect you with the right person. What can I help you with today?",
+    "I'm part of the team assisting with online enquiries from website guests like yourself. I can help you with information or organise for someone from the dealership to get in touch. What would you like help with today?",
+    "We work with a number of clients to assist their website visitors to find what they need and help organise for the dealership to contact them at a time that's convenient. How can I assist you today?",
+  ]},
+  {id:"empathy",label:"Empathy / Acknowledgement",num:"02",entries:[
+    "Thank you for bringing this to my attention.",
+    "Thank you for bringing this to our attention.",
+    "Thank you for sharing your feedback.",
+    "I understand your concern.",
+    "I completely understand how that could feel frustrating.",
+    "That must be difficult; thank you for letting us know.",
+    "I'm sorry to hear the tool isn't working as expected.",
+    "I'm sorry about the trouble you've had with the website.",
+    "I know this must be inconvenient, and I'm sorry you're experiencing it.",
+    "I completely understand. Let me help you get the details another way.",
+    "I understand the urgency, and I have limited information. What I'll do is send this over to our team so they can get back to you regarding this.",
+  ]},
+  {id:"expectations",label:"Setting Expectations",num:"03",entries:[
+    "I just need to gather a few more details for this enquiry, if that's okay.",
+    "Thank you. I just have a few remaining questions.",
+    "Thank you! I only have a couple of quick questions left.",
+    "Please bear with me. I just need to ask two more questions.",
+    "Thank you! I will just need to ask a few more questions to gather the information I'll include in this enquiry.",
+    "I appreciate your concerns, and I want to ensure I have all the necessary details. This will help me provide our team with the information they need to assist you effectively when I pass along your enquiry.",
+    "To better assist you, I would need to gather these details that will help our team provide you with the most effective support when I forward your enquiry.",
+    "I understand your hesitation, but I would need to verify these details to provide our sales team with the information needed to assist you effectively when I forward your enquiry to them.",
+  ]},
+  {id:"transitions",label:"Transition Phrases",num:"04",entries:[
+    "May I also check...",
+    "In addition...",
+    "By the way...",
+    "Along with that...",
+    "Just to add...",
+    "Before I submit this...",
+    "One more thing...",
+    "While I have you here...",
+    "For completeness...",
+  ]},
+  {id:"name",label:"Name Verification",num:"05",entries:[
+    "For verification, may I know who I'm chatting with, please?",
+    "To confirm, may I have your name, please?",
+    "Thanks for that! Just checking — would [Name] be the best name to use?",
+    "Appreciate you sharing that. Just confirming — should I refer to you as [Name]?",
+    "Awesome, thanks! Would [Name] be correct to call you by?",
+    "I want to make sure I have your details correct. Could you please confirm your name for our records?",
+    "For our records, may I please have your correct name so our team can reach out to you properly?",
+  ]},
+  {id:"phone",label:"Phone & Contact",num:"06",subsections:[
+    {title:"Phone number requests",entries:[
+      "Great! Can you also please share the best contact number to call or message you on?",
+      "May I have your phone number so I can make sure the details reach you directly?",
+      "Could you share your contact number? Let me arrange for you to receive information about this enquiry.",
+      "Can you please provide your contact number so I can organise for the information to be sent to you?",
+    ]},
+    {title:"Phone as backup",entries:[
+      "I understand you prefer email. May I also take your contact number as a backup? We'll only call if it's truly necessary.",
+      "I know email works best for you. Is it okay if I also get your phone number as a backup? We'll only use it if it's really necessary.",
+      "Would it be all right if I take your phone number too, purely as backup? We'll only call if absolutely needed.",
+    ]},
+    {title:"Phone number + preferred time",entries:[
+      "While I prepare your request, could you please provide your contact number and the best time to reach you?",
+      "As I work on submitting this request, would you mind sharing your phone number and your preferred time to connect?",
+      "To ensure you receive the details promptly, may I have your phone number and your preferred time to be contacted?",
+      "While I work on putting in the stock information request, could you please share your phone number and the best time to contact you?",
+      "While I work on submitting the pricing request, could you please share your contact number and the best time to reach you?",
+      "As I prepare to submit the pricing request, could you please share your contact number and your preferred time to connect?",
+      "As I proceed with submitting the pricing request, would you mind providing your phone number along with your preferred time to contact you?",
+    ]},
+  ]},
+  {id:"email",label:"Email Requests",num:"07",entries:[
+    "Alternatively, is there an email address I can take where you can receive the information?",
+    "Or do you have an email address where you can receive the details?",
+    "If it's easier or more convenient, is there an email address I can take where you can receive the information?",
+    "If you prefer, do you have an email address so I can arrange for the information to be sent to you?",
+    "I completely understand. I'm sorry I don't have direct access to that information, but if it helps, I can arrange for our team to email the details to you.",
+    "Apologies, I currently have limited information about your enquiry. I can request our service team to email the details to you if you prefer.",
+  ]},
+  {id:"limited",label:"Limited Information & Escalation",num:"08",entries:[
+    "I apologise as I currently have limited information, but I can organise for our team to get in touch with details.",
+    "While I don't have all the information just yet, I'll make sure to forward your enquiry to our team so they can assist further.",
+    "I am part of the customer service team and don't have the required information on hand to answer that. I'd be more than happy to help by passing your details on to a team member who can contact you and provide the information you're after.",
+    "I'll make sure to include that in your enquiry and help you receive the information you need.",
+    "I might not have all the information on hand, but I'll happily organise things so you receive the details you're after.",
+    "While I don't have all the information just yet, I'll make sure it's looked into and you receive the answer.",
+    "I understand your concern. I'm part of Customer Service and have limited access to Sales details, but I'll arrange for a sales consultant to assist you.",
+    "I understand your concern. As part of Customer Service, I don't have access to Sales details, but I'll connect you with a sales consultant who can assist.",
+    "I understand how important this is for you. As I'm part of the Customer Service team and not directly handling Sales, I'll coordinate with the right team to assist you further.",
+    "I hear your concern, and I truly want to help. Since I'm in Customer Service and not Sales, I'll connect you with the appropriate team for accurate assistance.",
+  ]},
+  {id:"referral",label:"Referral Statements",num:"09",entries:[
+    "I'll raise this with our team for action.",
+    "I'll forward this for further review.",
+    "I'll arrange for our team to look into this.",
+    "I'll coordinate this with our consultant.",
+    "I will inform our team.",
+    "I will advise our team on this matter.",
+    "I'll have our consultant review this.",
+    "I'll bring this to our team's attention.",
+    "I'll give our team a heads-up.",
+    "I'll share those details with our team.",
+    "I'll share this with our team right away.",
+    "I'll pass this along to our consultant for you.",
+  ]},
+  {id:"thankyou",label:"Thank You Responses",num:"10",entries:[
+    "You're most welcome.",
+    "My pleasure.",
+    "Glad I could help.",
+    "It was a pleasure assisting you today.",
+    "Happy to help!",
+    "Always here to assist!",
+    "Happy to help any time.",
+  ]},
+  {id:"complaints",label:"Complaint Handling",num:"11",entries:[
+    "Thank you for raising this. I'd like to arrange one of our team members to call you and discuss how we can resolve your concerns. I just need to ask a couple of quick questions to get this organised.",
+    "Thanks for reaching out and sharing your thoughts. If you'd like, I can pass your feedback to our team and include your contact details should you wish to be contacted further.",
+    "I understand your request. Could you please share a bit more about what this is regarding?",
+    "I hear you. To ensure your concern is addressed by the appropriate senior manager, may I kindly ask what this is about?",
+    "I understand your request. May I ask what this relates to so I can direct you correctly?",
+  ]},
+  {id:"difficult",label:"Difficult / Abusive Chats",num:"12",entries:[
+    "I'd appreciate it if we could keep our conversation respectful.",
+    "I kindly ask that we keep the chat free from inappropriate language.",
+    "Thanks for the invite, but I'll have to pass. I'd be happy to continue helping you with your enquiry. Could we keep our conversation focused on that?",
+    "Thank you, but I'll pass on that. Let's keep our chat focused on your enquiry so I can assist you better.",
+    "I appreciate you sharing your thoughts, and I'd prefer if we could keep our conversation free from strong or offensive language.",
+    "I will help resolve your concern, but if you continue to use this language, I will have to end the chat.",
+    "I would appreciate if you could refrain from using offensive language or providing information not related to your enquiry so that I can address it appropriately.",
+    "Let's keep our conversation respectful so I can assist you better.",
+    "It seems that your recent message is not related to your enquiry.",
+  ]},
+  {id:"realagent",label:"Real Person / Role Explanation",num:"13",subsections:[
+    {title:"Real person confirmation",entries:[
+      "No, I'm a real person.",
+      "No, I'm a real person. I get that question a lot.",
+      "Oh! You are chatting with a real person. I usually get that comment.",
+      "Yes, I'm a real person. How may I assist you today?",
+      "I'm sorry if I appear robotic, as we have standard questions to ask.",
+    ]},
+    {title:"Explaining our role",entries:[
+      "I am employed by [Dealer Name] to arrange for a callback or email communication if you would like more information.",
+      "I work for [Dealer Name]. My role here is to receive your online enquiry and pass it to the right person who will contact you to help further.",
+      "I apologise for any inconvenience; my resources are limited as I work within the online customer service team.",
+      "I can arrange for our team to contact you with the details.",
+      "I don't have access to the complete details at the moment, but I would be happy to arrange for our team to contact you.",
+      "Yes, I am a real person! I work in our customer service department and my role is to assist you online by collecting the details of your enquiry and ensuring they're passed to the right person.",
+      "Our vehicle experts are best placed to go through the features and specifications in detail.",
+      "I'd be happy to arrange for one of our team members to reach out and discuss this with you.",
+    ]},
+  ]},
+  {id:"hold",label:"Hold / Checking Information",num:"14",entries:[
+    "Please give me a moment to check my resources so I can better assist you.",
+    "Let me take a minute to see what information I have available for you.",
+    "I'll just need a minute to review my resources and find the best way to help.",
+    "Kindly allow me a moment to check what details I can provide regarding this.",
+    "Let me double-check my information for you. This will only take a minute or two.",
+    "Kindly allow me a moment to check further. I just want to be certain I provide the most accurate details.",
+  ]},
+  {id:"waiting",label:"Waiting & Inactive Guests",num:"15",subsections:[
+    {title:"Waiting responses",entries:[
+      "Thank you for your patience. I wasn't able to locate the details here, but I'll make sure to send a request to our team so they can review this and provide you with the right answer.",
+      "I appreciate your patience. While I wasn't able to find the specific details just now, I'll forward your enquiry to our team so you can receive a proper response.",
+      "I appreciate your patience. I couldn't find the information at this moment, but I'll ensure your request is forwarded to our team who can provide you with the right details.",
+    ]},
+    {title:"Idle / inactive guest",entries:[
+      "It looks like you may have stepped away.",
+      "It seems you're no longer online at the moment.",
+      "It seems you aren't there any more.",
+      "If we're still connected, may I ask a few more questions to assist you better?",
+      "I noticed you've been inactive, so I just wanted to check if you're still online.",
+      "Are you still there?",
+      "I'm still here. Just checking in to see if you'd like to continue with your enquiry.",
+      "I am still here for you. Just checking if you are ready to continue.",
+      "Not rushing you at all, just wanted to see if you're still with me.",
+      "I'm still here to assist you, so please take your time.",
+      "I'm here when you're ready. Just checking to see that we're still connected.",
+    ]},
+    {title:"Extended wait (3+ minutes)",entries:[
+      "I'll just pop in with a quick message now and then, so the chat doesn't time out on us.",
+      "If the chat closes before you're back, you can just return to this page and send a quick message, and we can pick up where we left off.",
+    ]},
+  ]},
+  {id:"unclear",label:"Incomplete / Unclear Messages",num:"16",entries:[
+    "It seems that your message is incomplete. If you could provide further clarification, I would greatly appreciate it.",
+    "It looks like your message might have been cut off. Could you please provide a bit more detail or clarify?",
+    "I'm sorry, but I'm having difficulty understanding your message. Could you share more details, please?",
+    "It seems your message didn't come through clearly. Could you please send it again?",
+  ]},
+  {id:"returning",label:"Returning / Follow-Up Enquiries",num:"17",entries:[
+    "Let me just go over the previous chat to make sure I've got the details right. Could you kindly confirm your name while I do that?",
+    "Please allow me to check the chat history and be up to speed with the things that were previously discussed. While I do, could you verify your name?",
+    "I am sorry to hear that you haven't heard back. Let me send a follow-up message about this.",
+    "Have you previously contacted us via live chat?",
+    "Have you reached out to us about this enquiry earlier?",
+    "Have you chatted with us about this enquiry previously?",
+    "Have you raised this enquiry with us before?",
+    "I completely understand. I'm sorry to hear you haven't been contacted yet.",
+    "To make sure the right team can reach you this time, could you please confirm your full name, best contact number, and email address?",
+    "I just want to be sure we've got the correct details on file before I pass this on.",
+  ]},
+  {id:"facebook",label:"Facebook / Returning Messages",num:"18",entries:[
+    "Thank you for reaching out. I've received your message.",
+    "Thanks for your message. I've got it here and will assist you shortly.",
+    "I appreciate you getting in touch. Your message has come through.",
+    "I'll help you get the right information in response to your question.",
+    "I'll arrange for you to receive accurate information to address your question.",
+    "I'll organise for you to receive the appropriate information regarding your enquiry.",
+    "Let me check how I can help with this. Have you reached out to us about this enquiry earlier?",
+    "Let me check how I can help with this. Have you chatted with us about this enquiry previously?",
+    "Let me check how I can help with this. Have you raised this enquiry with us before?",
+  ]},
+  {id:"sales",label:"Sales & Stock Enquiries",num:"19",entries:[
+    "I'd be glad to help you obtain the stock options that fit your preferences.",
+    "I'll be glad to help you obtain the information you need for your search.",
+    "Let me help arrange for you to get the information that you need for your search.",
+    "Let me help you get the information you need for your search.",
+    "I'll be happy to assist you in getting the stock information that best matches your preferences.",
+    "Let me help you obtain information on used cars that are available within your budget.",
+    "I'll be happy to help organise for you to get its stock information.",
+    "I'll be happy to help organise for you to get its pricing information.",
+    "I'll be glad to help you get the information on which [MODEL] are currently available.",
+    "Let me assist you in getting confirmation of which [MODEL] are available right now.",
+    "I'll help you get confirmation on whether the new model is currently in stock.",
+    "I'll help you obtain the details on when the [MODEL] is expected to be in stock and its wait times.",
+    "I'll help organise for you to receive the information about its wait time.",
+  ]},
+  {id:"service",label:"Service & Bookings",num:"20",entries:[
+    "Let me help you get started by creating a booking request.",
+    "I'll be happy to assist you in creating a booking request to get you started.",
+    "I'll be happy to help organise for you to get the quote or cost.",
+    "I would be glad to assist you in obtaining confirmation, should that service be available.",
+    "Let me help arrange for you to get the available slots.",
+    "Could you please clarify if your appointment is for a service or repair, a valuation to sell, a sales enquiry, or something else?",
+    "Just to confirm, is the inspection for a service or repair, a valuation to sell, sales, or something else?",
+  ]},
+  {id:"testdrive",label:"Test Drive Enquiries",num:"21",entries:[
+    "Absolutely! I can organise a suitable time for you to view and take it for a test drive.",
+    "I'll just need to ask a couple of quick questions to collect the information I need to submit this for you.",
+    "I'd be happy to help you get the information and check the vehicle's availability for a test drive.",
+    "Absolutely! I'd be happy to arrange an appointment for you to view the vehicle in person and check out its condition and features.",
+    "I just need to ask a couple of quick questions so I can submit the appointment request for you.",
+    "Once the stock is confirmed, what would be your preferred date and time?",
+  ]},
+  {id:"finance",label:"Finance & Trade-In",num:"22",subsections:[
+    {title:"Finance enquiries",entries:[
+      "I'll help you get details about the available financing options.",
+      "I'll help you get confirmation about your eligibility to get financing.",
+      "I'll be glad to help you by making an online request.",
+      "I'll be happy to assist you by making an online request for this.",
+      "I'll submit a request to discuss finance options for a used car, taking your situation into account.",
+      "Would you like to know the finance options, or are you planning an outright purchase?",
+    ]},
+    {title:"Trade-in enquiries",entries:[
+      "I'll help you get details about the available trade-in options.",
+      "By the way, since your current vehicle has already been written off, do you happen to have any other vehicle that you would like to be appraised as a trade-in?",
+    ]},
+  ]},
+  {id:"options",label:"Options & Recommendations",num:"23",entries:[
+    "I will help you get some options considering your preferences.",
+    "I will help organise for you to get the information that you need to help you decide.",
+    "I will assist you in getting recommendations based on the budget you'd like to stay within.",
+    "I will help get the details that you need so you can have time to review your options.",
+    "I'd help organise for you to get some options that fit your requirements.",
+    "I will help you get some recommendations that will suit you best.",
+    "Let me help arrange for you to get the options that suit what you are looking for.",
+    "I will organise for one of our consultants to guide you in exploring options based on your preferences.",
+    "I will have one of our sales team members assist you in finding options that align with what you are looking for.",
+    "In receiving some options based on the budget you'd like to stay within.",
+    "In knowing the available options to determine which one best meets your needs.",
+    "In obtaining suggestions or alternatives.",
+    "In gathering the information you need to make an informed decision.",
+  ]},
+  {id:"features",label:"Vehicle Preferences & Features",num:"24",entries:[
+    "Is there a particular brand and model you're interested in?",
+    "Do you have any preferences or features in mind for the car you are looking for?",
+    "Are there other features or preferences that you wish to include?",
+    "Is there a budget range you're working with?",
+    "Are there specific features or preferences you'd like included?",
+    "Would you be considering a new or pre-owned vehicle?",
+    "Is there a particular car you're interested in?",
+    "Did you see one online that caught your attention?",
+    "We stock a large range of quality vehicles. Have you found one that interests you?",
+    "Are there particular features you'd like your next vehicle to have?",
+    "It looks like the [MODEL] has caught your attention. Can you confirm if this is the vehicle you're enquiring about?",
+    "What would you like to find out about the [MODEL]?",
+    "What details do you need about the [MODEL]?",
+    "Is there something specific you'd like to check about the [MODEL]?",
+  ]},
+  {id:"timeframes",label:"Timeframes & Callbacks",num:"25",subsections:[
+    {title:"Standard",entries:[
+      "I'm sorry, but I'm not able to provide a specific timeframe. I've sent your enquiry through, and the team will be in touch as soon as they're able.",
+    ]},
+    {title:"Urgent",entries:[
+      "I'm sorry, but I'm not able to provide a specific timeframe. I'll flag your enquiry as urgent and the team will reach out as soon as they're able.",
+      "I understand this is urgent. I'm sorry, but I can't provide a specific timeframe. I've passed this through with an urgent note.",
+      "I can see this is urgent. While I'm unable to provide a specific timeframe, I've sent this through immediately and marked it as urgent.",
+    ]},
+    {title:"Callback",entries:[
+      "While callback times may vary, please be assured that our team will contact you at the earliest possible time.",
+      "I'll make sure to relay your preferred callback time to our team.",
+      "They will be in touch as soon as someone becomes available.",
+      "Our office hours are from 8:00 AM to 5:00 PM daily. Callback times may vary, but please be assured that our team will get in touch at the earliest convenient time.",
+      "No worries. I'll make sure to pass this along to the dealership after our conversation.",
+      "Our team will get back to you as soon as someone is available to discuss your enquiry.",
+    ]},
+    {title:"24-hour turnaround",entries:[
+      "24 hours is our standard turnaround time. However, the dealership is closed today, so please expect a response on the next business day.",
+      "Please be advised that within 24 hours or the next business day is our standard timeframe for a callback.",
+      "I can also give you the service contact number if you wish to contact them directly as well.",
+    ]},
+    {title:"Purchase timeframe",entries:[
+      "Just for the record, are you planning to purchase soon, or do you have a specific timeframe in mind?",
+      "Just for the record, do you have a timeframe in mind for your purchase, or are you still considering your options?",
+      "Can I confirm whether you plan to make a purchase while in Australia, or whether someone will do so on your behalf?",
+      "Are you looking to visit and purchase this vehicle within the next 3 months?",
+      "Would someone locally be assisting you on your behalf, or are you planning to travel within the next three months to proceed with the purchase?",
+    ]},
+  ]},
+  {id:"parts",label:"Parts, Rego & Service History",num:"26",subsections:[
+    {title:"Parts and labour",entries:[
+      "Are you only interested in supply, or do you also need assistance with labour?",
+      "To confirm, are you only interested in supply, or do you also need help with labour?",
+      "To confirm, are you planning to book your car in, or is this just a quote request for now?",
+      "Let me check what you need. Are you looking just for the part itself, or would you also like assistance with fitting/installation?",
+      "To guide you better, do you only need the supply of parts, or are you also considering labour/service support?",
+    ]},
+    {title:"Rego / service history",entries:[
+      "Could you please confirm your vehicle's details and its registration?",
+      "May I have the year, make, model, and registration, please?",
+      "Have you serviced your vehicle through our centre before?",
+      "Do you already have service records with us?",
+      "Have you previously had your car serviced at our centre?",
+      "Do you currently have any service history with us?",
+      "While I don't have direct access to our customer service records, I'll need to check a few details to provide you with the right support.",
+      "I'm unable to view customer service records in this chat, and I'll verify some details so I can help you further.",
+    ]},
+  ]},
+  {id:"recap",label:"Recap & Submission",num:"27",entries:[
+    "I'll send this through now and one of our team members will be in touch as soon as possible.",
+    "Your request has been successfully submitted.",
+    "One of our team members will contact you as soon as someone becomes available.",
+    "Thank you for providing all the information. I've included everything in the enquiry.",
+    "Is there anything else I can note down for you?",
+    "Would you like to add any other details?",
+    "Do you have any additional concerns you'd like me to record?",
+    "Is there anything else you'd like me to check or include?",
+    "Shall I go ahead with just these details, or is there more you'd like to add?",
+  ]},
+  {id:"lengthy",label:"Lengthy Message Acknowledgements",num:"28",entries:[
+    "I appreciate you providing these details. I'll review them carefully so I can assist you better. May I have your name, please?",
+    "I appreciate the details you've provided. I'll go over them carefully so I can help you better. May I kindly have your name?",
+    "Thank you for sharing the information. I'll just go through it again to make sure I give you the right support. May I kindly have your name?",
+    "I appreciate you providing these details. I'll review them carefully so I can assist you better.",
+    "I appreciate the details you've provided. I'll go over them carefully so I can help you better.",
+  ]},
+  {id:"browsing",label:"Browsing & Rushing",num:"29",subsections:[
+    {title:"Just browsing / researching",entries:[
+      "Sure, feel free. If you are currently doing your research first, let me help organise for you to get recommendations based on your needs.",
+      "No problem, by all means. Feel free to browse for any helpful information. If you are in the market right now, I can help you obtain some options.",
+      "No worries, go ahead and feel free to browse through. If you are currently looking for some options or suggestions, let me help arrange for you to get the information you need.",
+      "Sure, feel free to do your research first. In the meantime, I'd be happy to help organise recommendations based on your needs.",
+      "No problem at all — please take your time browsing. If you're ready for options, I can help prepare some suggestions tailored for you.",
+      "Of course, go ahead and browse through. And when you're ready, I can help put together the right options for you.",
+      "If you're currently doing your research, I can also arrange recommendations to make it easier for you.",
+      "Absolutely, feel free to look around. Whenever you're ready, I can organise recommendations based on what you need.",
+    ]},
+    {title:"Guest in a rush",entries:[
+      "My apologies. You can discuss the remaining details with our team once they reach out to you.",
+      "Oh, not a problem. You may discuss the other details with our team instead.",
+      "I don't mean to keep you longer. Can you please provide your name and contact details, in case we get disconnected?",
+      "Please bear with me. Would it be okay to ask you two more questions?",
+      "I'm sorry. I have just two questions left, and then we're done. Would that be okay?",
+      "Thanks for your patience! Would you mind if I asked you just two more quick questions?",
+      "I appreciate your time! I have just two questions left, and then we'll be all set. Would that work for you?",
+    ]},
+  ]},
+  {id:"incorrect",label:"Incorrect Details",num:"30",subsections:[
+    {title:"Incorrect name",entries:[
+      "I want to make sure I have your details correct. Could you please confirm your name for our records?",
+      "For our records, may I please have your correct name so our team can reach out to you properly?",
+    ]},
+    {title:"Incorrect email",entries:[
+      "Could you please re-enter your email address so I can make sure it's recorded correctly?",
+      "I just want to double-check the email address to make sure I have it correct.",
+      "May I please confirm the correct email address for our records?",
+      "Thank you! Could you please confirm the correct email address? It appears to be in an incorrect format.",
+    ]},
+    {title:"Incorrect phone number",entries:[
+      "Could you please verify the contact number you provided? It appears to be missing a few digits.",
+      "Thank you! Could you please verify the contact number you provided? It appears to be missing a few digits.",
+    ]},
+  ]},
+  {id:"restricted",label:"Restricted Information",num:"31",entries:[
+    "I'm sorry, but I don't have access to our employees' records. Could you please share the details of your enquiry so I can see how best to assist you?",
+    "While I don't have the service manager's email, could you please provide more information about your service questions? I will check how I can further help you.",
+    "While I don't have access to the Dealer Principal's contact information, could you please provide more details about your enquiry so I can assist you further?",
+    "I appreciate you getting in touch. I have limited access to staff information, but if you could share a bit more about your enquiry, I'll do my best to assist.",
+    "Thanks for contacting us. I don't have complete staff details available, but please let me know more about what you're after and I'll do my best to support you.",
+    "I appreciate your message. I might not have all the staff information on hand, but if you share the details of your enquiry, I'll do everything I can to help.",
+    "Thank you for reaching out today. While I may not have the Dealer Principal's contact information, please allow me to know more about your enquiry so I can help as much as possible.",
+  ]},
+  {id:"security",label:"Privacy & Security",num:"32",entries:[
+    "Any information you provide us will be solely used for this enquiry.",
+    "It will help our consultant contact you in the soonest possible way to confirm and discuss the details.",
+    "I completely understand. For privacy and security, I'm unable to view or read back previously provided details.",
+    "Could you please confirm your name, phone number, and email so I can locate your enquiry and assist you further?",
+  ]},
+  {id:"business",label:"Business / Company Use",num:"33",entries:[
+    "Thanks for confirming! May I just ask if the vehicles are for your company's use, or are you planning to resell them?",
+    "May I confirm the intended use of the vehicles — for your own business operations or for resale purposes?",
+  ]},
+  {id:"special",label:"Special Situations",num:"34",subsections:[
+    {title:"Language barrier",entries:[
+      "I apologise, but I can only communicate in English. You may contact the dealership directly for any available consultant who can speak your language.",
+    ]},
+    {title:"Holiday enquiries",entries:[
+      "Typically we are closed on public holidays.",
+      "Let me send an enquiry to help you get that information and assist you.",
+      "The dealership is typically closed on public holidays. However, we will assist you with the holiday schedule as soon as we're back in the office.",
+      "Thank you for your understanding.",
+    ]},
+    {title:"Career enquiries",entries:[
+      "Thank you for your interest.",
+      "To best assist you with your enquiry, please get in touch with us directly using the details below.",
+    ]},
+    {title:"Roadside assistance",entries:[
+      "Here's the roadside contact information: [INSERT DETAILS]",
+      "Also, would it be possible to have your contact details so that we can let the service team know you have called roadside and may require a repair booking?",
+    ]},
+    {title:"Police / emergency",entries:[
+      "We don't have any after-hours emergency phone numbers available.",
+      "We are an offsite customer service centre, sorry.",
+      "For immediate assistance, kindly contact the police.",
+    ]},
+    {title:"GuideBot / Marcus",entries:[
+      "Marcus is our colleague from the Concierge Team and he will initially ask for the nature of your enquiry, then he will transfer the chat to us.",
+    ]},
+  ]},
+  {id:"drivechat",label:"DriveChat Contact",num:"35",entries:[
+    "Sure! I'll send this over to our team so that they can assist with this and get back to you as soon as possible.",
+    "You can also send an email to our Customer Support team at customerservice@drivechat.com.au about your request.",
+    "Contact Us: https://drivechat.com.au/contact/",
+    "Australia: 03 9556 5495",
+    "New Zealand: 09 886 6832",
+    "United Kingdom: 0203 608 8606",
+    "United States: (213) 283 0782",
+  ]},
+  {id:"nonlead",label:"Non-Lead & Direct Contact",num:"36",entries:[
+    "I will now close this chat window. If there is anything else I can assist you with, please let me know. We are online 24/7! Bye!",
+    "Thank you for reaching out. To assist you best with your enquiry, please contact us directly using the following details:",
+    "I recommend contacting our team directly for the best guidance on this matter.",
+    "Please contact us directly using the following details:",
+    "I understand your concern, and currently, I have limited information. For the best advice, may I kindly suggest reaching out to our team directly?",
+    "Apologies, as I currently don't have the information readily available. Please send us an email through our Contact Us page so that our team can assist you as quickly as possible.",
+  ]},
+  {id:"closing",label:"Chat Closing & Testing",num:"37",subsections:[
+    {title:"Closing scripts",entries:[
+      "Oh, I understand. I will close the chat window now. If you need anything else, remember we are online 24/7! Bye!",
+      "Oh, sorry. I will close the chat window now. If you need anything else, remember we are online 24/7! Bye!",
+      "You can reposition the chat window by clicking and dragging the window to a different position.",
+      "You can close the window by clicking the \"X\" on the top right corner.",
+      "Or let me just close the chat window now. If you need anything else, remember we are online 24/7! Bye.",
+      "I will now close this chat window. If there is anything else I can assist you with, please let me know. We are online 24/7! Bye!",
+    ]},
+    {title:"Test chat / system testing",entries:[
+      "Would you like me to arrange anything further, or shall I send this lead through to confirm everything is running as expected?",
+      "Is there anything else you'd like me to organise, or should I go ahead and submit this lead so we can confirm the process is working smoothly?",
+      "Would you like me to action anything additional, or shall I send this lead through to help confirm everything is set up correctly?",
+      "Is there anything more I can do for you right now, or would you like me to pass this lead on to make sure everything is working as it should?",
+      "Can I arrange anything else for you, or should I go ahead and send this lead through to confirm things are moving smoothly?",
+      "Would you prefer me to set up anything further, or simply send this lead through so we can be sure everything's running properly?",
+    ]},
+  ]},
+];
+
+function getAllEntries(s){
+  if(s.entries) return s.entries;
+  if(s.subsections) return s.subsections.flatMap(ss=>ss.entries);
+  return[];
+}
+
+function esc(t){
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function highlight(text,term){
+  if(!term) return esc(text);
+  const re=new RegExp('('+term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');
+  return esc(text).replace(re,'<em>$1</em>');
+}
+
+let activeTab='all';
+
+function buildTabs(){
+  const c=document.getElementById('tabsContainer');
+  const allBtn=document.createElement('button');
+  allBtn.className='tab active';allBtn.textContent='All';
+  allBtn.onclick=()=>setTab('all',allBtn);
+  c.appendChild(allBtn);
+  SECTIONS.forEach(s=>{
+    const b=document.createElement('button');
+    b.className='tab';b.textContent=s.label;b.dataset.id=s.id;
+    b.onclick=()=>setTab(s.id,b);
+    c.appendChild(b);
+  });
+}
+
+function setTab(id,btn){
+  activeTab=id;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+function labelMatchesFilter(section, ft){
+  return section.label.toLowerCase().includes(ft) || section.num.includes(ft);
+}
+
+function render(){
+  const ft=document.getElementById('searchInput').value.trim().toLowerCase();
+  const container=document.getElementById('sectionsContainer');
+  container.innerHTML='';
+  let total=0;
+  const list=activeTab==='all'?SECTIONS:SECTIONS.filter(s=>s.id===activeTab);
+
+  list.forEach(section=>{
+    const allE=getAllEntries(section);
+    const headerMatch=ft && labelMatchesFilter(section,ft);
+    const matchedEntries=ft?allE.filter(e=>e.toLowerCase().includes(ft)):allE;
+
+    // Show section if header matches OR any entries match
+    if(ft && !headerMatch && !matchedEntries.length) return;
+
+    // If header matches with no entry matches, show all entries
+    const entriesToShow=headerMatch && !matchedEntries.length ? allE : matchedEntries;
+    total+=entriesToShow.length;
+
+    const div=document.createElement('div');
+    div.className='section'+(headerMatch && !matchedEntries.length?' header-match':'');
+
+    // Build header with highlighted label if header matched
+    const labelHtml=headerMatch ? highlight(section.label,ft) : esc(section.label);
+    div.innerHTML=`<div class="section-header"><span class="section-num">${section.num}</span><h2>${labelHtml}</h2><span class="section-match">${entriesToShow.length}</span><span class="chevron">&#9660;</span></div><div class="section-body"></div>`;
+    div.querySelector('.section-header').addEventListener('click',()=>div.classList.toggle('collapsed'));
+    const body=div.querySelector('.section-body');
+
+    if(section.entries){
+      (headerMatch && !matchedEntries.length ? allE : section.entries.filter(e=>!ft||e.toLowerCase().includes(ft))).forEach(e=>{
+        body.appendChild(buildSpiel(e,headerMatch&&!matchedEntries.length?'':ft));
+      });
+    } else if(section.subsections){
+      section.subsections.forEach(ss=>{
+        const me=ft&&!headerMatch?ss.entries.filter(e=>e.toLowerCase().includes(ft)):ss.entries;
+        if(!me.length) return;
+        const st=document.createElement('div');st.className='subsection-title';st.textContent=ss.title;body.appendChild(st);
+        me.forEach(e=>body.appendChild(buildSpiel(e,headerMatch&&!matchedEntries.length?'':ft)));
+      });
+    }
+
+    container.appendChild(div);
+  });
+
+  document.getElementById('statsDisplay').textContent=
+    total+(total===1?' spiel':' spiels')+(ft?` matching "${ft}"`:'');
+
+  if(!container.children.length){
+    container.innerHTML='<div class="no-results"><span>&#128270;</span>No spiels found. Try a different search term.</div>';
+  }
+}
+
+function buildSpiel(text,ft){
+  const d=document.createElement('div');d.className='spiel';
+  const safeForAttr=text.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n');
+  d.innerHTML=`<p class="spiel-text">${highlight(text,ft)}</p><button class="copy-btn" onclick="copyText(this,'${safeForAttr}')">&#128203; Copy</button>`;
+  return d;
+}
+
+function copyText(btn,text){
+  const decoded=text.replace(/\\n/g,'\n');
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(decoded).then(()=>flashCopied(btn)).catch(()=>fallbackCopy(btn,decoded));
+  } else {
+    fallbackCopy(btn,decoded);
+  }
+}
+
+function fallbackCopy(btn,text){
+  const ta=document.createElement('textarea');
+  ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
+  document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy');}catch(e){}
+  document.body.removeChild(ta);
+  flashCopied(btn);
+}
+
+function flashCopied(btn){
+  btn.innerHTML='&#10003; Copied!';btn.classList.add('copied');
+  setTimeout(()=>{btn.innerHTML='&#128203; Copy';btn.classList.remove('copied');},1800);
+}
+
+buildTabs();
+render();
+document.getElementById('searchInput').addEventListener('input',render);
+</script>
+</body>
+</html>
